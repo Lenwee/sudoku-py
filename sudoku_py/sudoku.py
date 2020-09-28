@@ -27,7 +27,7 @@ class Sudoku:
         display = ''
         for row in self.grid:
             for col in row:
-                display += f'{col}'
+                display += f'{col} '
             display += f'\n'
         return display
 
