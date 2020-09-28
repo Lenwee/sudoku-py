@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="sudoku-py",
+    name="sudoku_py",
     version="0.0.1",
     author="Lewis Hammond",
     author_email="lewishammond97@gmail.com",
