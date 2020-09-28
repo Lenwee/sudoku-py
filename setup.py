@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     author="Lewis Hammond",
     author_email="lewishammond97@gmail.com",
-    description="A Python sudoku solver and generator",
+    description="A Python Sudoku solver and generator",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Lenwee/sudoku-py",
