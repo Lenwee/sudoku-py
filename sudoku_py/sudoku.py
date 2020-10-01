@@ -60,6 +60,15 @@ class Sudoku:
         self.solutions = []
         self.__solve(solutions=solutions)
 
+    def board_exchange_values(self, value_mappings):
+        for y in range(self.board_width):
+            for x in range(self.board_width):
+                if self.board[y][x] != 0:
+                    try:
+                        self.board[y][x] = value_mappings[self.board[y][x]]
+                    except KeyError:
+                        raise SudokuException('Value mapping has missing value: {0}'.format(self.board[y][x]))
+
     def __get_block_dimensions(self):
         block_area = self.board_width
         height = 0
@@ -71,7 +80,7 @@ class Sudoku:
             width += 1
         return height, width
 
-    def possible(self, x, y, value):
+    def _possible(self, x, y, value):
         return (self.__check_row(y, value) and
                 self.__check_col(x, value) and
                 self.__check_block(x, y, value))
@@ -103,7 +112,7 @@ class Sudoku:
             for x in range(self.board_width):
                 if self.board[y][x] == 0:
                     for value in self.board_tokens:
-                        if self.possible(x, y, value):
+                        if self._possible(x, y, value):
                             self.board[y][x] = value
                             self.__solve(solutions=solutions)
                             if len(self.solutions) >= solutions:
@@ -130,12 +139,7 @@ class SudokuGenerator(Sudoku):
         return random.choice(cell_options)
 
     def __create_empty_board(self):
-        board = []
-        for y in range(self.board_width):
-            board.append([])
-            for x in range(self.board_width):
-                board[y].append(0)
-        return board
+        return [[0] * self.board_width for i in range(self.board_width)]
 
     def __create_full_grid(self):
         for y in range(self.board_width):
@@ -146,7 +150,7 @@ class SudokuGenerator(Sudoku):
                         if len(cell_options) == 0:
                             break
                         value = self.__get_random_value(cell_options)
-                        if self.possible(x, y, value):
+                        if self._possible(x, y, value):
                             self.board[y][x] = value
                             self.__create_full_grid()
                             if self.__board_created:
