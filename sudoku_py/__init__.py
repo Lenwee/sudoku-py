@@ -1,1 +1,1 @@
-from .sudoku import Sudoku, SudokuSolver, SudokuGenerator  # NOQA
+from .sudoku import Sudoku # NOQA
