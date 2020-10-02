@@ -32,15 +32,33 @@ class Sudoku:
             self.block_height = block_height
         if board_token not in VALID_TOKENS:
             raise SudokuException('Invalid board token selected.')
-        self.board_token = board_token
-        self.board_tokens = self.get_board_tokens()
+        self.board_tokens = self.get_board_tokens(board_token)
         self.solutions = []
         self.board_is_valid()
 
-    def get_board_tokens(self):
-        if self.board_token is NUMBER_TOKENS:
+    def __str__(self):
+        board_string = ''
+        if self.board:
+            cell_length = len(str(self.board_size)) + 1
+            cells_length = cell_length * self.board_size
+            boundary_length = ((int(self.board_size / self.block_width) - 1) * 2) -1
+            for i, row in enumerate(self.board):
+                if i % self.block_height == 0 and i != 0:
+                    board_string += (cells_length + boundary_length) * '-'
+                    board_string += '\n'
+                for j, cell in enumerate(row):
+                    if j % self.block_width == 0 and j != 0:
+                        board_string += '| '
+                    board_string += cell + (' ' * (cell_length - len(str(cell))))
+                board_string += '\n'
+        else:
+            board_string = 'Board invalid'
+        return board_string
+
+    def get_board_tokens(self, board_token):
+        if board_token is NUMBER_TOKENS:
             return list(range(1, self.board_size + 1))
-        elif self.board_token is CHAR_TOKENS:
+        elif board_token is CHAR_TOKENS:
             return list(string.ascii_lowercase[:self.board_size])
 
     def board_is_valid(self):
@@ -123,6 +141,8 @@ class Sudoku:
 
     def board_rotate_90_deg(self):
         self.board = list(zip(*self.board[::-1]))
+        for index, row in enumerate(self.board):
+            self.board[index] = list(row)
         return self.board
 
     def board_shuffle_col_blocks(self):
