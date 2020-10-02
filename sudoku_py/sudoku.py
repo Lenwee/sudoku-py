@@ -20,7 +20,7 @@ class Sudoku:
 
     def __init__(self, board, block_width=None, block_height=None, board_token=NUMBER_TOKENS):
         self.board = board
-        self.board_width = len(board)
+        self.board_size = len(board)
         if not block_height and not block_width:
             self.block_height, self.block_width = self.__get_block_dimensions()
         elif not block_height:
@@ -39,12 +39,12 @@ class Sudoku:
 
     def get_board_tokens(self):
         if self.board_token is NUMBER_TOKENS:
-            return list(range(1, self.board_width + 1))
+            return list(range(1, self.board_size + 1))
         elif self.board_token is CHAR_TOKENS:
-            return list(string.ascii_lowercase[:self.board_width])
+            return list(string.ascii_lowercase[:self.board_size])
 
     def board_is_valid(self):
-        board_height = self.board_width
+        board_height = self.board_size
         for row in self.board:
             if len(row) != board_height:
                 raise SudokuException('Board dimensions are invalid.')
@@ -61,8 +61,8 @@ class Sudoku:
         self.__solve(solutions=solutions)
 
     def board_exchange_values(self, value_mappings):
-        for y in range(self.board_width):
-            for x in range(self.board_width):
+        for y in range(self.board_size):
+            for x in range(self.board_size):
                 if self.board[y][x] != 0:
                     try:
                         self.board[y][x] = value_mappings[self.board[y][x]]
@@ -70,7 +70,7 @@ class Sudoku:
                         raise SudokuException('Value mapping has missing value: {0}'.format(self.board[y][x]))
 
     def __get_block_dimensions(self):
-        block_area = self.board_width
+        block_area = self.board_size
         height = 0
         width = math.ceil(math.sqrt(block_area))
         while width <= block_area:
@@ -96,20 +96,20 @@ class Sudoku:
         return True
 
     def __check_row(self, y, value):
-        for x in range(self.board_width):
+        for x in range(self.board_size):
             if self.board[y][x] == value:
                 return False
         return True
 
     def __check_col(self, x, value):
-        for y in range(self.board_width):
+        for y in range(self.board_size):
             if self.board[y][x] == value:
                 return False
         return True
 
     def __solve(self, solutions):
-        for y in range(self.board_width):
-            for x in range(self.board_width):
+        for y in range(self.board_size):
+            for x in range(self.board_size):
                 if self.board[y][x] == 0:
                     for value in self.board_tokens:
                         if self._possible(x, y, value):
@@ -121,11 +121,38 @@ class Sudoku:
                     return
         self.solutions.append(copy.deepcopy(self.board))
 
+    def board_rotate_90_deg(self):
+        self.board = list(zip(*self.board[::-1]))
+        return self.board
+
+    def board_shuffle_col_blocks(self):
+        temp_board = copy.deepcopy(self.board)
+        col_blocks = list(range(self.board_size / self.block_width))
+        random.shuffle(col_blocks)
+        for y in range(self.board_size):
+            offset = 0
+            for block in col_blocks:
+                for i in range(self.block_width):
+                    self.board[y][offset * self.block_width + i] = temp_board[y][block * self.block_width + i]
+                offset += 1
+        return self.board
+
+    def board_shuffle_row_blocks(self):
+        temp_board = copy.deepcopy(self.board)
+        row_blocks = list(range(self.board_size / self.block_height))
+        random.shuffle(row_blocks)
+        offset = 0
+        for block in row_blocks:
+            for i in range(self.block_width):
+                self.board[offset * self.block_height + i] = temp_board[block * self.block_height + i]
+            offset += 1
+        return self.board
+
 
 class SudokuGenerator(Sudoku):
 
-    def __init__(self, board_width, block_width=None, block_height=None):
-        self.board_width = board_width
+    def __init__(self, board_size, block_width=None, block_height=None):
+        self.board_size = board_size
         super(SudokuGenerator, self).__init__(
             board=self.__create_empty_board(),
             block_width=block_width,
@@ -139,11 +166,11 @@ class SudokuGenerator(Sudoku):
         return random.choice(cell_options)
 
     def __create_empty_board(self):
-        return [[0] * self.board_width for i in range(self.board_width)]
+        return [[0] * self.board_size for i in range(self.board_size)]
 
     def __create_full_grid(self):
-        for y in range(self.board_width):
-            for x in range(self.board_width):
+        for y in range(self.board_size):
+            for x in range(self.board_size):
                 if self.board[y][x] == 0:
                     cell_options = copy.deepcopy(self.board_tokens)
                     while len(cell_options) > 0:
@@ -164,8 +191,8 @@ class SudokuGenerator(Sudoku):
     def generate(self, cells_to_remove):
         self.__create_full_grid()
         grid_coords = []
-        for y in range(self.board_width):
-            for x in range(self.board_width):
+        for y in range(self.board_size):
+            for x in range(self.board_size):
                 grid_coords.append((x, y))
         random.shuffle(grid_coords)
         for x, y in grid_coords:
