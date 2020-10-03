@@ -41,7 +41,7 @@ class Sudoku:
         if self.board:
             cell_length = len(str(self.board_size)) + 1
             cells_length = cell_length * self.board_size
-            boundary_length = ((int(self.board_size / self.block_width) - 1) * 2) -1
+            boundary_length = ((int(self.board_size / self.block_width) - 1) * 2) - 1
             for i, row in enumerate(self.board):
                 if i % self.block_height == 0 and i != 0:
                     board_string += (cells_length + boundary_length) * '-'
@@ -49,7 +49,7 @@ class Sudoku:
                 for j, cell in enumerate(row):
                     if j % self.block_width == 0 and j != 0:
                         board_string += '| '
-                    board_string += cell + (' ' * (cell_length - len(str(cell))))
+                    board_string += str(cell) + (' ' * (cell_length - len(str(cell))))
                 board_string += '\n'
         else:
             board_string = 'Board invalid'
@@ -143,7 +143,6 @@ class Sudoku:
         self.board = list(zip(*self.board[::-1]))
         for index, row in enumerate(self.board):
             self.board[index] = list(row)
-        return self.board
 
     def board_shuffle_col_blocks(self):
         temp_board = copy.deepcopy(self.board)
@@ -155,7 +154,6 @@ class Sudoku:
                 for i in range(self.block_width):
                     self.board[y][offset * self.block_width + i] = temp_board[y][block * self.block_width + i]
                 offset += 1
-        return self.board
 
     def board_shuffle_row_blocks(self):
         temp_board = copy.deepcopy(self.board)
@@ -166,7 +164,6 @@ class Sudoku:
             for i in range(self.block_width):
                 self.board[offset * self.block_height + i] = temp_board[block * self.block_height + i]
             offset += 1
-        return self.board
 
 
 class SudokuGenerator(Sudoku):
@@ -208,25 +205,37 @@ class SudokuGenerator(Sudoku):
         self.__board_created = True
         return
 
-    def generate(self, cells_to_remove):
-        self.__create_full_grid()
+    def __get_cell_order(self, random_removal):
         grid_coords = []
         for y in range(self.board_size):
             for x in range(self.board_size):
                 grid_coords.append((x, y))
-        random.shuffle(grid_coords)
+        if random_removal:
+            random.shuffle(grid_coords)
+        return grid_coords
+
+    def generate(self, cells_to_remove, random_removal=True, symmetry_removal=False):
+        self.__create_full_grid()
+        grid_coords = self.__get_cell_order(random_removal)
         for x, y in grid_coords:
             if cells_to_remove == 0:
-                return self.board
-
+                break
             if self.board[y][x] != 0:
                 prev_value = self.board[y][x]
                 self.board[y][x] = 0
+                if symmetry_removal:
+                    y_2 = self.board_size - 1 - y
+                    x_2 = self.board_size - 1 - x
+                    prev_value_2 = self.board[y_2][x_2]
+                    self.board[y_2][x_2] = 0
+                    cells_to_remove -= 1
                 temp_grid = copy.deepcopy(self.board)
                 self.solve(solutions=1)
                 self.board = temp_grid
                 cells_to_remove -= 1
                 if len(self.solutions) != 1:
+                    if symmetry_removal:
+                        self.board[y_2][x_2] = prev_value_2
+                        cells_to_remove += 1
                     self.board[y][x] = prev_value
                     cells_to_remove += 1
-        return self.board
